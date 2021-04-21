@@ -5,3 +5,4 @@ Dependencies:
 * pip install sqlalchemy
 * pip install python-dotenv
 * pip install psycopg2
+* pip install -U flask-cors
