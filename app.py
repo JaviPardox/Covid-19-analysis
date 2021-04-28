@@ -153,7 +153,7 @@ def all_vacc_man():
                         "x": date_val,
                         "y": total_vacc,
                         "type":"scatter",
-                        "name": name
+                        "name": country + ": " + name
                     }
             dic[country][name] = dic_vac
     
@@ -200,7 +200,7 @@ def all_vacc_change_man():
                         "x": date_val,
                         "y": total_vacc,
                         "type":"scatter",
-                        "name": name
+                        "name": country + ": " + name
                     }
 
             dic[country][name] = dic_vac
