@@ -1,0 +1,44 @@
+<html>
+
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+
+    <button onclick="vaccChanged('allvaccines')">Vaccinations</button>
+    <p id="vaccines_button"></p>
+
+    <button onclick="vaccChanged('allvaccines_change')">Daily vaccinations</button>
+    <p id="vaccines_rate_button"></p>
+
+    <div class="well">
+        <h2>Chose Country:</h2>
+        <select id="selDataset" onchange="optionChanged(this.value)"></select>
+    </div>
+    <h1>final</h1>
+    <div id="plot">
+
+    </div>
+
+    <div id="checkboxid">
+        <h2> Check box</h2>
+    </div>
+
+    <div id="plot_checkbox">
+
+    </div>
+ 
+    <h1>vaccines</h1>
+    <div id="plot1">
+
+    </div>
+    <h1>rate of change</h1>
+    <div id="plot2">
+
+    </div>
+
+</body>
+
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="index.js"></script>
+</html>
