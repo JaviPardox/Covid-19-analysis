@@ -32,131 +32,67 @@ def dict_reorder(item):
                 item[k] = dict_reorder(v)
     return item
 
-
-#def df_to_dict_vacc(df,column):
-
-
-
-
-@app.route("/vaccines")
-def vaccines():
-
-    df = pd.read_sql_query("SELECT * FROM vaccines_man", engine)
-
-    names = df["vaccine"].unique()
-    # Sort to keep the color order
-    names = sorted(names, key=str.lower)
-
-    data = []
-
-    # Iterate through the dataframe and make a dictionary out of each vaccine manufacturer 
-    for name in names:
-        date_val = []
-        total_vacc = []
-
-        dates = df.loc[df["vaccine"] == name]["date"]
-        vaccines = df.loc[df["vaccine"] == name]["total_vaccinations"]
+# first_order: big group, example: countries
+# second_order: small group within big group, example: vaccines
+# df: dataframe with data 
+# parameters: list of parameters for plotting, it has to be 2 elements x and y respectively
+# graph_type: type of graph, example: scatter
+# differential_column: default to False, set to True if the data has a column of rate of change from some data
+def second_order_dic(first_order, second_order, df, parameters, graph_type, differential_column = False):
+    
+    order1 = df[first_order].unique()
+    dic = {}
+    
+    for order1_element in order1:
         
-        for date in dates:
-            date_val.append(str(date))
-
-        for vaccine in vaccines:
-            total_vacc.append(vaccine)
+        new_df = df.loc[df[first_order] == order1_element]
+        order2 = new_df[second_order].unique()
+        dic[order1_element] = {}
         
-        vacc_dic = {
-        
-        "x": date_val,
-        "y": total_vacc,
-        "type":"scatter",
-        "name": name,
-        "mode": "lines"
-        }
-        
-        data.append(vacc_dic)
+        for order2_element in order2:
+            
+            param1_list = []
+            param2_list = []
+            
+            # If the data has a rate of change column, set first row to 0
+            if(differential_column == True):
+                index = new_df.loc[new_df[second_order] == order2_element].index[0]
+                new_df.at[index, parameters[1]] = 0
+            
+            # Get series of data for graph parameters under the second order element
+            param1 = new_df.loc[new_df[second_order] == order2_element][parameters[0]]
+            param2 = new_df.loc[new_df[second_order] == order2_element][parameters[1]]
+            
+            for element in param1:
+                param1_list.append(element)
 
-    return jsonify(data)
+            for element in param2:
+                param2_list.append(element)
+                                                                        
+            nested_dic = {
+                            "x": param1_list,
+                            "y": param2_list,
+                            "type": graph_type,
+                            "name": order2_element
+            }
+                                                                        
+            dic[order1_element][order2_element] = nested_dic
+    
+    return dic
 
 
-@app.route("/vaccines/difference")
-def vaccines_difference():
-
-    # Need the total_vaccinations to be INT type, instead of big INT
-    # This is due to the fact that the LAG() function only takes the same data type for all arguments 
-    connection.execute('ALTER TABLE vaccines_man ALTER COLUMN total_vaccinations TYPE integer;')
-
-    # LAG() is used to access the previous row
-    df = pd.read_sql_query("SELECT location, date, vaccine , total_vaccinations, total_vaccinations - LAG(total_vaccinations,1,0) OVER (PARTITION BY vaccine ORDER BY date) AS Total_Diff FROM vaccines_man", engine)
-        
-    data = []
-    names = df["vaccine"].unique()
-    names = sorted(names, key=str.lower)
-
-    # The query returns a non-0 value for the first row of each manufacturer's total_diff, that value has to be 0
-    for name in names:
-        index = df.loc[df["vaccine"] == name].index[0]
-        df.at[index, 'total_diff'] = 0
-
-    for name in names:
-        date_val = []
-        total_vacc_diff = []
-
-        dates = df.loc[df["vaccine"] == name]["date"]
-        vaccines_diff = df.loc[df["vaccine"] == name]["total_diff"]
-        
-        for date in dates:
-            date_val.append(str(date))
-
-        for vaccine in vaccines_diff:
-            total_vacc_diff.append(vaccine)
-        
-        vacc_dic = {
-        
-        "x": date_val,
-        "y": total_vacc_diff,
-        "type":"scatter",
-        "name": name,
-        "mode": "lines"
-        }
-        
-        data.append(vacc_dic)
-
-    return jsonify(data)
 
 @app.route("/allvaccines")
 def all_vacc_man():
 
     df = pd.read_sql_query("SELECT * FROM all_vaccines", engine)
-    countries = df["location"].unique()
-
-    dic = {}
-    for country in countries:
-    
-        countries_dic = {country:{}}
-        new_df = df.loc[df["location"] == country]
-        names = new_df["vaccine"].unique()
-        dic[country] = {}
+    first_order = "location"
+    second_order = "vaccine"
+    parameters = ["date","total_vaccinations"] #x,y
+    graph_type = "scatter"       
+                                                                            
+    dic = second_order_dic(first_order,second_order,df,parameters,graph_type,differential_column=False)
         
-        for name in names:
-            date_val = []
-            total_vacc = []
-
-            dates = new_df.loc[new_df["vaccine"] == name]["date"]
-            vaccines = new_df.loc[new_df["vaccine"] == name]["total_vaccinations"]
-
-            for date in dates:
-                date_val.append(str(date))
-
-            for vaccine in vaccines:
-                total_vacc.append(vaccine)
-
-            dic_vac ={
-                        "x": date_val,
-                        "y": total_vacc,
-                        "type":"scatter",
-                        "name": country + ": " + name
-                    }
-            dic[country][name] = dic_vac
-    
     reordered_dict = dict_reorder(dic)
 
     return jsonify(reordered_dict)
@@ -165,46 +101,13 @@ def all_vacc_man():
 @app.route("/allvaccines_change")
 def all_vacc_change_man():
 
-    connection.execute('ALTER TABLE all_vaccines ALTER COLUMN total_vaccinations TYPE integer;')
-
     df = pd.read_sql_query("SELECT location, date, vaccine , total_vaccinations, total_vaccinations - LAG(total_vaccinations,1,0) OVER (PARTITION BY vaccine ORDER BY location, date) AS Total_Diff FROM all_vaccines", engine)
-
-    countries = df["location"].unique()
-
-    dic = {}
-
-    for country in countries:
-        
-        countries_dic = {country:{}}
-        new_df = df.loc[df["location"] == country]
-        names = new_df["vaccine"].unique()
-        dic[country] = {}
-        
-        for name in names:
-            date_val = []
-            total_vacc = []
-
-            index = new_df.loc[new_df["vaccine"] == name].index[0]
-            new_df.at[index, 'total_diff'] = 0
-
-            dates = new_df.loc[new_df["vaccine"] == name]["date"]
-            vaccines = new_df.loc[new_df["vaccine"] == name]["total_diff"]
-
-            for date in dates:
-                date_val.append(str(date))
-
-            for vaccine in vaccines:
-                total_vacc.append(vaccine)
-
-            dic_vac ={
-                        "x": date_val,
-                        "y": total_vacc,
-                        "type":"scatter",
-                        "name": country + ": " + name
-                    }
-
-            dic[country][name] = dic_vac
-
+    first_order = "location"
+    second_order = "vaccine"
+    parameters = ["date","total_diff"] #x,y
+    graph_type = "scatter"       
+                                                                        
+    dic = second_order_dic(first_order,second_order,df,parameters,graph_type,differential_column=True)        
 
     reordered_dict = dict_reorder(dic)
 

@@ -1,46 +1,4 @@
-// d3.json("http://localhost:5000/vaccines").then(function(data){
 
-//     console.log(data);
-
-
-//     var layout = {
-//         title:'Vaccinations per manufacturer in US',
-//         xaxis: {
-//             title: 'Date',
-//             showgrid: true,
-//             zeroline: true
-//           },
-//           yaxis: {
-//             title: 'Total Vaccinations',
-//             showline: true
-//           }
-//       };
-
-
-
-//     Plotly.newPlot('plot1', data, layout);
-
-// })
-
-// d3.json("http://localhost:5000/vaccines/difference").then(function(data){
-
-
-//     var layout = {
-//         title:'Daily change of total vaccinations per manufacturer in US',
-//         xaxis: {
-//             title: 'Date',
-//             showgrid: true,
-//             zeroline: true
-//           },
-//           yaxis: {
-//             title: 'Total Vaccinations Change',
-//             showline: true
-//           }
-//       };
-
-//     Plotly.newPlot('plot2', data, layout);
-
-// })
 
 function vaccine_chart(country,type){
 
