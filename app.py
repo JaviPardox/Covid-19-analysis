@@ -81,6 +81,56 @@ def second_order_dic(first_order, second_order, df, parameters, graph_type, diff
     return dic
 
 
+# first_order: filter by, example: vaccines
+# df: dataframe with data 
+# parameters: list of parameters for plotting, it has to be 2 elements x and y respectively
+# graph_type: type of graph, example: scatter
+# differential_column: default to False, set to True if the data has a column of rate of change from some data
+# isDateFormat: set to true if the x axis data is in datetime format
+def first_order_dic(first_order, df, parameters, graph_type, differential_column = False, isDateFormat = False):
+    
+    # Sort by first order
+    order1 = df[first_order].unique()
+    data = []
+    
+    for order1_element in order1:
+        
+        param1_list = []
+        param2_list = []
+        
+        # If the data has a rate of change column, set first row to 0
+        if(differential_column == True):
+            index = df.loc[df[first_order] == order1_element].index[0]
+            df.at[index, parameters[1]] = 0
+        
+        # Get columns data for plotting
+        param1 = df.loc[df[first_order] == order1_element][parameters[0]]
+        param2 = df.loc[df[first_order] == order1_element][parameters[1]]
+        
+        # Format to string in case the data is in datetime format
+        if(isDateFormat == True):
+            for element in param1:
+                param1_list.append(str(element))
+        else:
+            for element in param1:
+                param1_list.append(element)
+            
+        for element in param2:
+            param2_list.append(element)
+            
+        dic = {
+            
+            "x": param1_list,
+            "y": param2_list,
+            "type": graph_type,
+            "name": order1_element
+            
+        }
+        
+        data.append(dic)
+        
+    return data
+
 
 @app.route("/allvaccines")
 def all_vacc_man():
