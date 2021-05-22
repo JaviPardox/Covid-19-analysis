@@ -63,7 +63,9 @@ function newVaccineChart(countries,type){
 
     d3.json("http://localhost:5000/" + type).then(function(data){
 
-        // Get all the data for each country
+        console.log(data)    
+    
+        // Get all the data for each country checked
         results = []
         countries.forEach(function(country){
             result = data[country]
@@ -71,7 +73,7 @@ function newVaccineChart(countries,type){
         })
         
         //console.log("countries results:")
-        //console.log(results)
+        console.log(results)
 
         // Index each vaccine manufacturer for each country and push it to array
         all_data = []
@@ -86,7 +88,7 @@ function newVaccineChart(countries,type){
                 
         })
         
-        //console.log(all_data)
+        console.log(all_data)
 
         // Chart layout
         var layout = {
@@ -118,7 +120,68 @@ function newVaccineChart(countries,type){
 
 }
 
+function statesVaccinesPlot(vaccine_data_type){
 
+    d3.json("http://localhost:5000/vaccines_states").then(function(data){
+
+        console.log(data)
+
+        results = []
+        vaccine_data_type.forEach(function(type){
+
+            result = data[type]
+            results.push(result)
+
+        })
+
+        console.log(results)
+
+        all_data = []
+
+        results.forEach(function(data){
+
+            data.forEach(function(vaccine_data){
+
+                all_data.push(vaccine_data)
+
+            })
+            
+        })
+
+        console.log(all_data)
+
+        var ytitle = ""
+        vaccine_data_type.forEach(function(title){
+
+            if(vaccine_data_type.length == 1){
+                return ytitle = title
+            }
+
+            ytitle = ytitle + title + "   "
+            return ytitle
+        })
+        console.log(ytitle)
+
+        // Chart layout
+        var layout = {
+            title: 'States vaccination data',
+            xaxis: {
+                title: 'Date',
+                showgrid: true,
+                zeroline: true
+            },
+            yaxis: {
+                title: ytitle,
+                showline: true
+            }
+        };
+
+        Plotly.newPlot('state_plot', all_data, layout);
+
+    })
+
+
+}
 
 
 function init_vacc(){
@@ -178,8 +241,6 @@ function init_vacc(){
     var state_container = d3.select("#state_checkboxid")
     d3.json("http://localhost:5000/vaccines_states").then(function(data){
 
-        console.log(data)
-
         var column_name = Object.keys(data);
         
         var id_checkbox = 0;
@@ -187,11 +248,11 @@ function init_vacc(){
 
             state_container
             .append('label')
-                .attr('for',"a"+id_checkbox)
+                .attr('for',"b"+id_checkbox)
                 .text(name)
             .append("input")
                 .attr("type", "checkbox")
-                .attr("id","a"+id_checkbox)
+                .attr("id","b"+id_checkbox)
                 .attr("value",name)
                 .attr("onclick","addTraceState(this.value)");
 
@@ -201,6 +262,10 @@ function init_vacc(){
             id_checkbox++;
 
         })
+
+        id_checkbox = 0;
+
+        statesVaccinesPlot(selected_states_vaccine_data);
     })
 }
 
@@ -236,6 +301,28 @@ function addTrace(name){
     // Create new chart after a change in the checkbox list
     newVaccineChart(countries_selected,vacc_type)
 }
+
+function addTraceState(type){
+
+    // Check if vaccine data type selected is already in array
+    if(selected_states_vaccine_data.includes(type)){
+
+        // If it's in array, it means that the checkbox was unselected, delete vaccine data type
+        selected_states_vaccine_data.splice(selected_states_vaccine_data.indexOf(type),1)
+    }
+    else{
+
+        // Else, add vaccine data type to the array
+        selected_states_vaccine_data.push(type)
+    }
+
+    // Create new chart with updated vaccine data types
+    statesVaccinesPlot(selected_states_vaccine_data)
+
+}
+
+// Array that holds the selected state's vaccine data
+var selected_states_vaccine_data = []
 
 // Array that holds the amount of countries that are currently being displayed 
 var countries_selected = [];
