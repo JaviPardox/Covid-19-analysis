@@ -164,5 +164,25 @@ def all_vacc_change_man():
     return jsonify(reordered_dict)
 
 
+@app.route("/vaccines_states")
+def vaccines_states():
+
+    dic = {}
+    df = pd.read_sql_query("SELECT * FROM states_vaccinations", engine)
+    df = df.dropna()
+    graph_type = "scatter"
+    sortby = "location"
+    # Get rid of date and location
+    columns = df.columns.tolist()[2:-1]
+
+    for column in columns:
+        parameters = ["date",column] #x,y
+        data = first_order_dic(sortby, df, parameters, graph_type)
+        formated_name = column.replace("_", " ").title() 
+        dic[formated_name] = data
+
+    return jsonify(dic)      
+
+
 if __name__ == '__main__':
     app.run()

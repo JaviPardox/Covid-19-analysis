@@ -46,14 +46,16 @@ function vaccine_chart(country,type){
         }
 
         // Plot data
-        console.log("good format") 
-        console.log(all_data)
+        //console.log("good format") 
+        //console.log(all_data)
         Plotly.newPlot('plot', all_data, layout);
 
 
     })
 
 }
+
+// FUNCTION FOR DATA STRACTION (1ST AND 2ND ORDER) AND FUNCTION FOR LAYOUT
 
 function newVaccineChart(countries,type){
 
@@ -116,6 +118,9 @@ function newVaccineChart(countries,type){
 
 }
 
+
+
+
 function init_vacc(){
 
     // Select container
@@ -169,6 +174,34 @@ function init_vacc(){
 
     })
 
+    // Select container
+    var state_container = d3.select("#state_checkboxid")
+    d3.json("http://localhost:5000/vaccines_states").then(function(data){
+
+        console.log(data)
+
+        var column_name = Object.keys(data);
+        
+        var id_checkbox = 0;
+        column_name.forEach(function(name){
+
+            state_container
+            .append('label')
+                .attr('for',"a"+id_checkbox)
+                .text(name)
+            .append("input")
+                .attr("type", "checkbox")
+                .attr("id","a"+id_checkbox)
+                .attr("value",name)
+                .attr("onclick","addTraceState(this.value)");
+
+            state_container
+            .append("br")
+            
+            id_checkbox++;
+
+        })
+    })
 }
 
 function optionChanged(new_country){
