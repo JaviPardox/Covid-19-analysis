@@ -183,6 +183,30 @@ def vaccines_states():
 
     return jsonify(dic)      
 
+@app.route("/map_stats")
+def map_stats():
+
+    df = pd.read_sql_query("SELECT * FROM states_vaccinations", engine)
+    df = df.dropna()
+    states = df["location"].unique()
+
+    new_df = pd.DataFrame()
+
+    # Get last row from each state
+    for state in states:
+        new_row = df.loc[df["location"] == state].iloc[-1]
+        temp_df = pd.DataFrame(new_row).T
+        new_df = pd.concat([new_df,temp_df],ignore_index=True)
+
+    postal_df = pd.read_sql_query("SELECT * FROM postal_names", engine)
+    postal_df = postal_df.rename(columns={"State":"location"}).drop(columns=["Abbrev"])
+    postal_df
+
+    new_df = new_df.merge(postal_df, how="left", on="location").dropna()
+    new_df["share_doses_used"] = new_df["share_doses_used"].multiply(100)
+    data = new_df.to_dict(orient='records')
+
+    return jsonify(data)
 
 if __name__ == '__main__':
     app.run()

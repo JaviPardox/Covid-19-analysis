@@ -63,7 +63,7 @@ function newVaccineChart(countries,type){
 
     d3.json("http://localhost:5000/" + type).then(function(data){
 
-        console.log(data)    
+        //console.log(data)    
     
         // Get all the data for each country checked
         results = []
@@ -73,7 +73,7 @@ function newVaccineChart(countries,type){
         })
         
         //console.log("countries results:")
-        console.log(results)
+        //console.log(results)
 
         // Index each vaccine manufacturer for each country and push it to array
         all_data = []
@@ -88,7 +88,7 @@ function newVaccineChart(countries,type){
                 
         })
         
-        console.log(all_data)
+        //console.log(all_data)
 
         // Chart layout
         var layout = {
@@ -124,7 +124,7 @@ function statesVaccinesPlot(vaccine_data_type){
 
     d3.json("http://localhost:5000/vaccines_states").then(function(data){
 
-        console.log(data)
+        //console.log(data)
 
         results = []
         vaccine_data_type.forEach(function(type){
@@ -134,7 +134,7 @@ function statesVaccinesPlot(vaccine_data_type){
 
         })
 
-        console.log(results)
+        //console.log(results)
 
         all_data = []
 
@@ -148,7 +148,7 @@ function statesVaccinesPlot(vaccine_data_type){
             
         })
 
-        console.log(all_data)
+        //console.log(all_data)
 
         var ytitle = ""
         vaccine_data_type.forEach(function(title){
@@ -160,7 +160,7 @@ function statesVaccinesPlot(vaccine_data_type){
             ytitle = ytitle + title + "   "
             return ytitle
         })
-        console.log(ytitle)
+        //console.log(ytitle)
 
         // Chart layout
         var layout = {
@@ -180,6 +180,131 @@ function statesVaccinesPlot(vaccine_data_type){
 
     })
 
+
+}
+
+
+function unpack(rows, key) {
+    return rows.map(function(row) { return row[key]; });
+}
+
+function mapStats_slider(){
+
+    d3.json("http://localhost:5000/map_stats").then(function(data){
+
+        //console.log(data)
+
+        //console.log(unpack(data, "total_vaccinations"))
+
+        var frames = [
+        
+        {
+            data: [{z: unpack(data, 'total_vaccinations')}],
+            traces: [0],
+            name: 'Total Vaccinations',
+            layout: {title: 'Total Vaccinations'}
+        },
+        {
+            data: [{z: unpack(data, 'total_distributed')}],
+            traces: [0],
+            name: 'Total Vaccinations Distributed',
+            layout: {title: 'Total Vaccines Distributed'}
+        },
+        {
+            data: [{z: unpack(data, 'people_vaccinated')}],
+            traces: [0],
+            name: 'Total People Vaccinated',
+            layout: {title: 'Total People Vaccinated'}
+        },
+        {
+            data: [{z: unpack(data, 'people_fully_vaccinated_per_hundred')}],
+            traces: [0],
+            name: 'People Fully Vaccinated per Hundred',
+            layout: {title: 'People Fully Vaccinated per Hundred'}
+        },
+        {
+            data: [{z: unpack(data, 'total_vaccinations_per_hundred')}],
+            traces: [0],
+            name: 'Total Vaccinations per Hundred',
+            layout: {title: 'Total Vaccinations per Hundred'}
+        },
+        {
+            data: [{z: unpack(data, 'people_fully_vaccinated')}],
+            traces: [0],
+            name: 'People Fully Vaccinated',
+            layout: {title: 'People Fully Vaccinated'}
+        },
+        {
+            data: [{z: unpack(data, 'people_vaccinated_per_hundred')}],
+            traces: [0],
+            name: 'People Vaccinated per Hundred',
+            layout: {title: 'People Vaccinated per Hundred'}
+        },
+        {
+            data: [{z: unpack(data, 'distributed_per_hundred')}],
+            traces: [0],
+            name: 'Vaccines Distributed per Hundred',
+            layout: {title: 'Vaccines Distributed per Hundred'}
+        },
+        {
+            data: [{z: unpack(data, 'share_doses_used')}],
+            traces: [0],
+            name: '% Vaccines Used',
+            layout: {title: '% Vaccines Used'}
+        }
+        ]
+
+        var all_data = [{
+            type: 'choropleth',
+            locationmode: 'USA-states',
+            locations: unpack(data, 'Code'),
+            z: unpack(data, 'total_vaccinations'),
+            text: unpack(data, 'location'),
+            colorscale: [
+                [0, 'rgb(242,240,247)'], [0.2, 'rgb(218,218,235)'],
+                [0.4, 'rgb(188,189,220)'], [0.6, 'rgb(158,154,200)'],
+                [0.8, 'rgb(117,107,177)'], [1, 'rgb(84,39,143)']
+            ],
+            colorbar: {
+                thickness: 0.2
+              },
+            marker: {
+                line:{
+                  color: 'rgb(255,255,255)',
+                  width: 2
+                }
+              }    
+        }];
+
+        var layout = {
+            title: 'Total Vaccinations',
+            geo:{
+              scope: 'usa',
+              showlakes: true,
+              lakecolor: 'rgb(255,255,255)'
+            },
+            xaxis: {autorange: false},
+            yaxis: {autorange: false},
+            sliders: [{
+              currentvalue: {
+                prefix: 'Last Update: ' + data[0]["date"] + " - ",
+              },
+              steps: frames.map(f => ({
+                label: f.name,
+                method: 'animate',
+                args: [[f.name], {frame: {duration: 0}}]
+              }))
+            }]
+          };    
+
+        Plotly.plot('map', {
+            data: all_data,
+            layout: layout,
+            frames: frames,
+            config: {showLink: false}
+          });  
+
+    })
 
 }
 
@@ -267,6 +392,8 @@ function init_vacc(){
 
         statesVaccinesPlot(selected_states_vaccine_data);
     })
+
+    mapStats_slider();
 }
 
 function optionChanged(new_country){
