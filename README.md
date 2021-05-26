@@ -1,6 +1,6 @@
 # Covid 19 analysis
 
-Dependencies:
+## Dependencies:
 * pip install pandas
 * pip install sqlalchemy
 * pip install python-dotenv
