@@ -1,5 +1,7 @@
 # Covid 19 analysis
 
+Small dashboard to visualize Covid-19 Data
+
 ## Dependencies:
 * pip install pandas
 * pip install sqlalchemy
